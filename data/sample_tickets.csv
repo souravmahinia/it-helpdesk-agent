@@ -1,0 +1,6 @@
+ticket_id,user_email,description,status,created_at
+TKT001,john@company.com,I forgot my password and cannot login please help,open,2024-01-15 09:00:00
+TKT002,sarah@company.com,Please give me access to the Finance shared drive,open,2024-01-15 09:30:00
+TKT003,mike@company.com,My account is locked after too many failed attempts,open,2024-01-15 10:00:00
+TKT004,emily@company.com,I need access to the HR portal for onboarding,open,2024-01-15 10:30:00
+TKT005,david@company.com,Please reset my VPN password it expired yesterday,open,2024-01-15 11:00:00
