@@ -1,7 +1,7 @@
 import os
 import sys
 from dotenv import load_dotenv
-
+from rag_pipeline import get_relevant_policy
 # Load your API key from .env file
 load_dotenv()
 
@@ -32,9 +32,19 @@ def classify_ticket(ticket_description, user_email):
 
     # This is your prompt — instructions you give to the AI
     # Think of it as writing a job description for the AI
+    # RAG — Get relevant policy for this ticket
+    # This is the key upgrade from basic agent to RAG-powered agent
+    print(f"   🔍 Searching IT policy for relevant rules...")
+    relevant_policy = get_relevant_policy(ticket_description)
+
     prompt = ChatPromptTemplate.from_template("""
-    You are an intelligent IT helpdesk agent.
-    Your job is to read IT support tickets and classify them.
+    You are an intelligent IT helpdesk agent working for TechCorp India.
+    Before taking any action, you must follow the company IT policy strictly.
+    
+    COMPANY IT POLICY (retrieved specifically for this ticket):
+    {policy_context}
+    
+    Based on the above policy, classify this ticket and respond accordingly.
     
     Classify the ticket into EXACTLY one of these categories:
     - PASSWORD_RESET: user needs password reset or account unlock
@@ -43,27 +53,27 @@ def classify_ticket(ticket_description, user_email):
     - UNKNOWN: cannot determine the action needed
     
     Also identify:
-    - The target system mentioned (AWS, VPN, HR Portal etc). Say 'general' if not mentioned.
+    - The target system mentioned (AWS, VPN, HR Portal, Finance, SAP etc). Say 'general' if not mentioned.
     - Priority: HIGH if it blocks work completely, MEDIUM if it slows work, LOW otherwise
+    - Policy note: any specific policy rule that applies to this ticket
     
     Respond in this EXACT format:
     ACTION: <action_type>
     SYSTEM: <target_system>
     PRIORITY: <priority>
+    POLICY_NOTE: <specific policy rule that applies>
     REASON: <one line explanation>
     
     User Email: {user_email}
     Ticket: {description}
     """)
 
-    # Chain connects the prompt to the LLM
-    # This is the core LangChain concept — chaining components together
     chain = prompt | llm
 
-    # Invoke the chain with your ticket data
     response = chain.invoke({
         "user_email": user_email,
-        "description": ticket_description
+        "description": ticket_description,
+        "policy_context": relevant_policy
     })
     # print(response)
 
@@ -85,6 +95,7 @@ def parse_classification(response_text):
         "action_type": "UNKNOWN",
         "target_system": "general",
         "priority": "MEDIUM",
+        "policy_note": "",
         "reason": ""
     }
 
@@ -97,10 +108,12 @@ def parse_classification(response_text):
             result["priority"] = line.replace("PRIORITY:", "").strip()
         elif line.startswith("REASON:"):
             result["reason"] = line.replace("REASON:", "").strip()
+        elif line.startswith("POLICY_NOTE:"):
+            result["policy_note"] = line.replace("POLICY_NOTE:", "").strip()
 
     return result
 
-def execute_action(ticket_id, user_email, action_type, target_system):
+def execute_action(ticket_id, user_email, action_type, target_system, policy_note=""):
     """
     Executes the action based on AI classification.
     In production these would be real API calls to 
@@ -109,16 +122,19 @@ def execute_action(ticket_id, user_email, action_type, target_system):
     """
     
     if action_type == "PASSWORD_RESET":
-        result = f"Password reset initiated for {user_email} on {target_system}. Reset link sent to email."
+        result = f"Password reset initiated for {user_email} on {target_system}. Policy: {policy_note}"
         print(f"   🔑 PASSWORD RESET: {user_email} | System: {target_system}")
+        print(f"   📋 Policy Applied: {policy_note}")
 
     elif action_type == "ACCESS_GRANT":
-        result = f"Access request for {target_system} submitted for {user_email}. Manager approval triggered."
+        result = f"Access request for {target_system} submitted for {user_email}. Manager approval triggered.Policy: {policy_note}"
         print(f"   ✅ ACCESS GRANT: {user_email} | System: {target_system}")
+        print(f"   📋 Policy Applied: {policy_note}")
 
     elif action_type == "ACCESS_REVOKE":
-        result = f"Access revoked for {user_email} on {target_system}. All sessions terminated."
+        result = f"Access revoked for {user_email} on {target_system}. All sessions terminated.Policy: {policy_note}"
         print(f"   🚫 ACCESS REVOKE: {user_email} | System: {target_system}")
+        print(f"   📋 Policy Applied: {policy_note}")
 
     else:
         result = f"Ticket escalated to human agent — could not classify request."
@@ -176,7 +192,8 @@ def run_pipeline(csv_path):
                 ticket_id=ticket['ticket_id'],
                 user_email=ticket['user_email'],
                 action_type=parsed['action_type'],
-                target_system=parsed['target_system']
+                target_system=parsed['target_system'],
+                policy_note=parsed['policy_note']
             )
 
             # Step 3 — Update ticket in database

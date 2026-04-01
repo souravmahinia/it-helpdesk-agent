@@ -1,0 +1,45 @@
+IT HELPDESK POLICY DOCUMENT
+Company: TechCorp India
+Version: 2.0
+
+=== PASSWORD RESET POLICY ===
+Standard password reset requests must be verified using employee ID before processing.
+Passwords must be reset within 2 hours of ticket submission during business hours.
+After 5 failed login attempts, accounts are automatically locked for security.
+Password reset for admin accounts requires approval from IT Security team.
+Temporary passwords expire within 24 hours and must be changed on first login.
+VPN passwords follow same policy but require additional MFA verification.
+SAP system passwords require manager approval before reset due to financial data access.
+
+=== ACCOUNT LOCKOUT POLICY ===
+Accounts locked after 5 failed attempts are automatically unlocked after 30 minutes.
+If user requests manual unlock, verify identity using employee ID and manager email.
+Accounts locked due to suspicious activity require IT Security team review before unlock.
+Remote workers must contact helpdesk via secure portal for account unlock requests.
+
+=== ACCESS MANAGEMENT POLICY ===
+New access requests require manager approval within 48 hours before provisioning.
+Finance system access requires both manager and Finance Head approval.
+AWS console access requires Security team approval and is granted read-only by default.
+HR portal access is restricted to HR department and designated managers only.
+Shared drive access is provisioned within 4 hours after manager approval received.
+Contractor access is temporary and must specify an expiry date in the request.
+Access revocation requests must be processed within 1 hour for security compliance.
+
+=== VPN ACCESS POLICY ===
+VPN access is provided to all permanent employees by default.
+VPN password resets follow standard password policy with additional MFA step.
+Contractors require manager approval for VPN access with maximum 90 day validity.
+VPN access is automatically revoked when employee exits the organization.
+
+=== DATA ACCESS POLICY ===
+Production database access is restricted to senior engineers and DBAs only.
+Read only access to staging databases can be approved by team lead.
+All database access requests must include business justification in ticket description.
+Database passwords are rotated every 90 days automatically by the system.
+
+=== OFFBOARDING POLICY ===
+All access must be revoked within 1 hour of employee exit confirmation.
+Manager must raise access revocation ticket with HR exit confirmation attached.
+Failure to revoke access within SLA triggers automatic escalation to IT Security.
+Laptop and hardware recovery must be confirmed before full offboarding is complete.
